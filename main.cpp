@@ -10,6 +10,7 @@
 #include<at_vec.hxx>
 #include <heal_api.hxx>
 #include <insanity_list.hxx> 
+#include <stchapi.hxx>
 //#include <tolerize_ent.hxx>     
 //#include <cover_options.hxx> 
 //#include<coverapi.hxx>
@@ -17,62 +18,106 @@
 //#include "all_h.h"
 //#define FLAG  ("FQHWIFBSCIEWFBSHFfhkFNEWIQUFBDA1343421312SFWFIFINFKASFHSDAFEWFFCE")
 using namespace std;
-
-int main()
-{
-	//ÕâÊÇ³£¹æÏî£¬ÓÃÒÔ²âÊÔmodel.exe
-	/*Part part;
+void testModel(){
+	Part part;
 	part.Draw("D:\\Documents\\FMT\\FMT-5.5\\release\\test_path\\uselib\\result.nps", 
-		"C:\\Users\\Jonathan_Lewis\\Desktop\\new\\","D:\\Documents\\FMT\\FMT-5.5\\release\\test_path\\uselib");*/
-
-	//ÏÂÃæÊÇ²âÊÔ¸÷ÖÖº¯ÊıµÄ£¬¿ÉÒÔ×¢ÊÍµô
+		"C:\\Users\\Jonathan_Lewis\\Desktop\\new\\","D:\\Documents\\FMT\\FMT-5.5\\release\\test_path\\uselib");
+}
+void testFuns(){
 	unlock_spatial_products_2541();
 	InitACIS();
 	
-	/*void test_skin();
-	test_skin();
+	void testImport();
+	testImport();
+	AcisModelExit();
+}
+int main()
+{
+	int testM = 0;
+	//è¿™æ˜¯å¸¸è§„é¡¹ï¼Œç”¨ä»¥æµ‹è¯•model.exe
+	if(testM)
+		testModel();
 
-	void test_cone();
-	test_cone();
+	//ä¸‹é¢æ˜¯æµ‹è¯•å„ç§å‡½æ•°çš„ï¼Œå¯ä»¥æ³¨é‡Šæ‰
+	else
+		testFuns();
 
-	void test_sphere();
-	test_sphere();*/
-	
-	//void test_cover();
-	//test_cover();
-	//void test_sphere1();      
-	//test_sphere1();
-
-	/*void read_data();
-	read_data();*/
-
-	/*void test_attrib();
-	test_attrib();*/
-
-	/*void test_assem();
-	test_assem();*/
-
-	void testEllipsoid();
-	testEllipsoid();
-
-	 AcisModelExit();
 	return 0;
 }
-
+void testImport(){
+	ENTITY_LIST list,list1;
+	if(! ReadSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\new\\cone.sat",list)){
+		cout<<"æœªæ‰¾åˆ°éƒ¨ä»¶"<<endl;
+	}	
+	ATTRIB_GEN_NAME *na;
+	api_find_named_attribute(list[0],"åç§°",na);
+	if(!na) {
+		cout<<"æœªä¿å­˜åç§°å±æ€§"<<endl;
+		return;
+	}
+	ATTRIB_GEN_STRING *NAME = (ATTRIB_GEN_STRING *)na;
+	std::string name = NAME->value();
+	for(int i = 0; i <= 1; ++i){
+		//ENTITY* copy = new ENTITY(*list[0]);//è¿™å¥è¯ä»¿ä½›æœ‰é—®é¢˜,ä¸èƒ½ç”¨å¤åˆ¶æ„é€ å‡½æ•°ï¼Ÿ
+		ENTITY* copy;
+		/*list.add(list[0]);
+		ENTITY* copy = list[i];*/
+		api_copy_entity(list[0],copy);
+		if(i != 0){//iä¸ç­‰äº0çš„ï¼Œ 
+			//list.add(list[0]);
+			//ENTITY* copy = list[i];
+			char num = i + '0';  
+			std::string copyName = name + '_' + num;
+			api_remove_generic_named_attribute(copy,"åç§°");
+			api_add_generic_named_attribute(copy,"åç§°",copyName.c_str(),SplitKeep,MergeKeepKept,TransApply,CopyCopy,(AcisOptions *)0);
+			ATTRIB_GEN_NAME *NA1;
+			api_find_named_attribute(copy,"åç§°",NA1);
+			cout<<((ATTRIB_GEN_STRING*)NA1)->value()<<endl;
+			api_find_named_attribute(copy,"ææ–™",NA1);
+			cout<<((ATTRIB_GEN_STRING*)NA1)->value()<<endl;
+			api_find_named_attribute(copy,"S1:pos",NA1);
+			cout<<((ATTRIB_GEN_POSITION*)NA1)->value().x()<<endl;
+		}
+		list1.add(copy);
+	}
+	SaveSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\testImport.sat",list1);
+}
+void testStich(){
+	ENTITY_LIST list;
+	ReadSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\new\\testCircle2.sat",list);
+	
+	ENTITY_LIST  r,o ;
+	//api_merge_seam_edges((BODY*)list[0]);
+	//api_merge_faces((BODY*)list[0],0);
+	//api_stitch((BODY*)list[0],(BODY*)list[0],TRUE);
+	/*api_clean_bodyapi_regularise_entityBODY*)list[0]);
+	(((list[0]);
+	api_clean_entity(list[0]);*/
+	//api_convert_to_spline(list[0],l);
+	//list.remove(list[0]);
+	//list.add(l);
+	tolerant_stitch_options sopts;
+	STITCH_COIN_MODES mode = SPASTITCH_COIN_STITCH;
+	sopts.set_stch_coincident_face_handling_mode(mode);
+	//stitch_options*sopts1 = new stitch_options(sopts);
+	api_stitch(list,o,r,&sopts);
+	SaveSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\testCircle2.sat",r);
+}
 //
 void testEllipsoid(){
 	BODY* sphere1,*sphere,*bool_body;
-	api_set_int_option( "new_periodic_splitting", 3 );
-	//api_solid_sphere(SPAposition(0,0,0),5,sphere);//ÕâÀï²»ÊÇÔ­µãµÄÔ²ĞÄµÄ»°£¬ºóÃæÀ­Éì£¬ÍÖÔ²ĞÄ»áÒÆ¶¯
+	//api_set_int_option( "new_periodic_splitting", 3 );
+	//api_solid_sphere(SPAposition(0,0,0),5,sphere);//è¿™é‡Œä¸æ˜¯åŸç‚¹çš„åœ†å¿ƒçš„è¯ï¼Œåé¢æ‹‰ä¼¸ï¼Œæ¤­åœ†å¿ƒä¼šç§»åŠ¨
 	api_solid_sphere(SPAposition(0,0,0),10,sphere1);
 	//api_transform_entity(sphere,scale_transf(1,1,2));
-	SPAtransf x = scale_transf(0.5,0.5,1);
-	TRANSFORM * y = new TRANSFORM(x);
-	api_change_body_trans( sphere1, y) ;
+	//SPAtransf x = scale_transf(0.5,0.5,1);
+	//TRANSFORM * y = new TRANSFORM(x);
+	//api_change_body_trans( sphere1, y) ;
 	api_transform_entity(sphere1,scale_transf(0.5,0.5,1));
 	//api_transform_entity(sphere1,rotate_transf(180,SPAvector(0,1,0)));
-	api_change_body_trans( sphere1, NULL ) ;
-
+	//api_change_body_trans( sphere1, NULL ) ;
+	api_merge_seam_edges(sphere1);
+	
 	//api_boolean(sphere, sphere1, UNION, NDBOOL_KEEP_NEITHER, bool_body);
 
 	//api_initialize_healing();
@@ -80,24 +125,35 @@ void testEllipsoid(){
 	//api_hh_auto_heal(sphere1);
 	//api_hh_end_body_for_healing(sphere1);
 	//api_terminate_healing();
-	ENTITY_LIST pModelEntityList;
-
-	insanity_list *list;
+	ENTITY_LIST pModelEntityList,p1,p2;
+	/*p1.init();
+	pModelEntityList.init();
+	p2.init();
+	p1.add(sphere1);
+	api_initialize_stitching();
+	exact_stitch_options *sopt = new exact_stitch_options;
+	api_stitch(p1,pModelEntityList,p2,sopt);
+	api_terminate_stitching();
+	sphere1->*/
+	/*insanity_list *list;
 	api_check_entity(sphere1,list);
 	cout<<list->count();
 	FILE * fp;
 	fp=fopen("C:\\Users\\Jonathan_Lewis\\Desktop\\error.txt","r");
-	list->print_messages(fp);
+	list->print_messages(fp);*/
 
 
 	pModelEntityList.init();
 	//pModelEntityList.add(sphere);
 	pModelEntityList.add(sphere1);
 	//pModelEntityList.add(bool_body);
+
+	
+
 	SaveSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\testEllipsoid1.sat",pModelEntityList);
 } 
 
-//ÔÚ²¿¼şentÀïÃæÑ°ÕÒÃûÎªfacenameµÄÃæ£¬·µ»ØÆä·¨ÏòÁ¿ºÍÖĞĞÄµã×ø±ê
+//åœ¨éƒ¨ä»¶enté‡Œé¢å¯»æ‰¾åä¸ºfacenameçš„é¢ï¼Œè¿”å›å…¶æ³•å‘é‡å’Œä¸­å¿ƒç‚¹åæ ‡
 //void find_face(string facename,ENTITY* ent, SPAvector & facevec,SPAposition & facepos){
 //	ATTRIB_GEN_NAME *na;
 //
@@ -105,7 +161,7 @@ void testEllipsoid(){
 //	api_find_named_attribute(ent,vec_name.c_str(),na);
 //	ATTRIB_GEN_VECTOR* vec=(ATTRIB_GEN_VECTOR*)na;
 //	if(na == NULL){
-//		cout<<"Î´ÕÒµ½Ãæ"<<facename<<"µÄ·¨ÏòÁ¿"<<endl;
+//		cout<<"æœªæ‰¾åˆ°é¢"<<facename<<"çš„æ³•å‘é‡"<<endl;
 //		return;
 //	}
 //	cout<<na->name()<<endl;
@@ -115,7 +171,7 @@ void testEllipsoid(){
 //	string pos_name = facename+":pos";
 //	api_find_named_attribute(ent,pos_name.c_str(),na);
 //	if(na == NULL){
-//		cout<<"Î´ÕÒµ½Ãæ"<<facename<<"µÄÖĞĞÄµã×ø±ê"<<endl;
+//		cout<<"æœªæ‰¾åˆ°é¢"<<facename<<"çš„ä¸­å¿ƒç‚¹åæ ‡"<<endl;
 //		return;
 //	}
 //	cout<<na->name()<<endl;
@@ -124,7 +180,7 @@ void testEllipsoid(){
 //	cout<<"("<<pos->value().x()<<","<<pos->value().y()<<","<<pos->value().z()<<")"<<endl;
 //}
 //
-//SPAvector cross_product(SPAvector a,SPAvector b){//¼ÆËãÈıÎ¬Ê¸Á¿»ı
+//SPAvector cross_product(SPAvector a,SPAvector b){//è®¡ç®—ä¸‰ç»´çŸ¢é‡ç§¯
 //	double x,y,z;
 //	x=a.y()*b.z()-b.y()*a.z();
 //	y=-(a.x()*b.z()-a.z()*b.x());
@@ -132,7 +188,7 @@ void testEllipsoid(){
 //	return SPAvector(x,y,z);
 //}
 //
-//double vector_angle(SPAvector a,SPAvector b){//¼ÆËãÊ¸Á¿¼Ğ½Ç
+//double vector_angle(SPAvector a,SPAvector b){//è®¡ç®—çŸ¢é‡å¤¹è§’
 //	double a_;
 //	a_=sqrt(a.x()*a.x()+a.y()*a.y()+a.z()*a.z());
 //	double b_=sqrt(b.x()*b.x()+b.y()*b.y()+b.z()*b.z());
@@ -140,9 +196,9 @@ void testEllipsoid(){
 //	return theta;
 //}
 
-/*¼ÆËãµãorigÈÆ¾­¹ıÔ­µãµÄÊ¸Á¿axis£¬ÄæÊ±ÕëĞı×ª»¡¶ÈthetaºóµÄµã×ø±ê£¬
-²Î¿¼ÎÄÕÂhttps://blog.csdn.net/gamesdev/article/details/9929211
-ºÍhttps://blog.csdn.net/qiuchangyong/article/details/5859628*/
+/*è®¡ç®—ç‚¹origç»•ç»è¿‡åŸç‚¹çš„çŸ¢é‡axisï¼Œé€†æ—¶é’ˆæ—‹è½¬å¼§åº¦thetaåçš„ç‚¹åæ ‡ï¼Œ
+å‚è€ƒæ–‡ç« https://blog.csdn.net/gamesdev/article/details/9929211
+å’Œhttps://blog.csdn.net/qiuchangyong/article/details/5859628*/
 //SPAposition rotated_pos(SPAposition orig,SPAvector axis,double angle){
 //	double c=cos(angle);
 //	double s=sin(angle);
@@ -150,7 +206,7 @@ void testEllipsoid(){
 //	double y0=orig.y();
 //	double z0=orig.z();
 //	//cout<<"("<<axis.x()<<","<<axis.y()<<","<<axis.z()<<")"<<endl;
-//	SPAvector unit_axis=axis/sqrt(axis.x()*axis.x()+axis.y()*axis.y()+axis.z()*axis.z());//µ¥Î»»¯axisÊ¸Á¿
+//	SPAvector unit_axis=axis/sqrt(axis.x()*axis.x()+axis.y()*axis.y()+axis.z()*axis.z());//å•ä½åŒ–axisçŸ¢é‡
 //	double i=unit_axis.x();
 //	double j=unit_axis.y();
 //	double k=unit_axis.z();
@@ -189,15 +245,15 @@ void testEllipsoid(){
 //	SPAposition cylP,coneP;
 //	find_face("S1",list[0],cylV,cylP);
 //	find_face("S1",list[1],coneV,coneP);
-//	//ÈÃÔ²×¶µÄS1Ãæ¸úÔ²ÖùµÄS1Ãæ¹²Ãæ£¬·¨ÏòÁ¿Ïà·´
+//	//è®©åœ†é”¥çš„S1é¢è·Ÿåœ†æŸ±çš„S1é¢å…±é¢ï¼Œæ³•å‘é‡ç›¸å
 //	//coordinate_transf(cylP,)
 //	SaveSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\before_trans.sat",list);
 //
-//	//bool reverse=true;//¹²ÃæµÄÊ±ºò£¬·¨ÏòÁ¿·½ÏòÏàÍ¬»¹ÊÇÏà·´£¬Ä¬ÈÏÏà·´
+//	//bool reverse=true;//å…±é¢çš„æ—¶å€™ï¼Œæ³•å‘é‡æ–¹å‘ç›¸åŒè¿˜æ˜¯ç›¸åï¼Œé»˜è®¤ç›¸å
 //	double angle=vector_angle(cylV,-coneV);
 //	SPAvector axis=cross_product(cylV,coneV);
-//	api_transform_entity(list[1],rotate_transf(angle,axis));//·¨ÏòÁ¿Ïà·´(coneV=-coneVÔò·¨ÏòÁ¿Í¬Ïò£©
-//	api_transform_entity(list[1],translate_transf(cylP-rotated_pos(coneP,axis,angle)));//½«Á½¸öÃæµÄÖĞĞÄµãÒÆÖÁÍ¬Ò»¸öµØ·½
+//	api_transform_entity(list[1],rotate_transf(angle,axis));//æ³•å‘é‡ç›¸å(coneV=-coneVåˆ™æ³•å‘é‡åŒå‘ï¼‰
+//	api_transform_entity(list[1],translate_transf(cylP-rotated_pos(coneP,axis,angle)));//å°†ä¸¤ä¸ªé¢çš„ä¸­å¿ƒç‚¹ç§»è‡³åŒä¸€ä¸ªåœ°æ–¹
 //	
 //	api_add_generic_named_attribute(list[1],"S1:pos",cylP);
 //	api_add_generic_named_attribute(list[1],"S1:vec",-cylV);
@@ -208,12 +264,12 @@ void testEllipsoid(){
 //}
 //void test_assem(){
 //	ENTITY_LIST list;
-//	ReadSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\new\\assem.sat",list); //Õâ¸ölistÊÇÕâÑùµÄ£ºsatÀïÃæÓĞ¼¸¸öµ¥¶ÀµÄbody£¬list¾ÍÓĞ¶àÉÙ¸öENTITY
+//	ReadSatFile("C:\\Users\\Jonathan_Lewis\\Desktop\\new\\assem.sat",list); //è¿™ä¸ªlistæ˜¯è¿™æ ·çš„ï¼šsaté‡Œé¢æœ‰å‡ ä¸ªå•ç‹¬çš„bodyï¼Œlistå°±æœ‰å¤šå°‘ä¸ªENTITY
 //	ATTRIB_GEN_NAME *na;
-//	api_find_named_attribute(list[1],"Ãû³Æ",na);
+//	api_find_named_attribute(list[1],"åç§°",na);
 //	ATTRIB_GEN_STRING *v=(ATTRIB_GEN_STRING *)na;
 //	string val=v->value();
-//	api_find_named_attribute(list[0],"²ÄÁÏ",na);
+//	api_find_named_attribute(list[0],"ææ–™",na);
 //	v=(ATTRIB_GEN_STRING *)na;
 //	val=v->value();
 //	vector<vector<int> > l;
@@ -241,18 +297,18 @@ void testEllipsoid(){
 //	MeshRegion.seekg(0,ios::beg);
 //	string line,lineD;
 //	if(!MeshVertex || !MeshRegion){
-//		cerr<<"ÎÄ¼ş´ò¿ªÊ§°Ü£¡"<<endl;
+//		cerr<<"æ–‡ä»¶æ‰“å¼€å¤±è´¥ï¼"<<endl;
 //		abort();
 //	}
 //	vector<double> x,y,z;
 //	while(!MeshVertex.eof()){
-//		getline(MeshVertex,line);//Õâ¸öµØ·½ºóĞøĞèÒªÑéÖ¤line·ûºÏ¸ñÊ½
+//		getline(MeshVertex,line);//è¿™ä¸ªåœ°æ–¹åç»­éœ€è¦éªŒè¯lineç¬¦åˆæ ¼å¼
 //		vector<double> split,splitD;
 //		split_number(line,split);
 //		if(MeshDisp){
 //			getline(MeshDisp,lineD);
 //			split_number(lineD,splitD);
-//			x.push_back(split[0]+splitD[0]);//Õâ¸öµØ·½ºóĞøĞøÑéÖ¤Ë÷ÒıÃ»ÓĞÒç³ö
+//			x.push_back(split[0]+splitD[0]);//è¿™ä¸ªåœ°æ–¹åç»­ç»­éªŒè¯ç´¢å¼•æ²¡æœ‰æº¢å‡º
 //			y.push_back(split[1]+splitD[1]);
 //			z.push_back(split[2]+splitD[2]);
 //		}
@@ -271,7 +327,7 @@ void testEllipsoid(){
 //	pModelEntityList.init();
 //	while(!MeshRegion.eof()){
 //		getline(MeshRegion,line);
-//		vector<double> splitR;//splitR ´æ·ÅÁËÒ»¸öÍø¸ñµÄËÄ¸öµãµÄË÷Òı
+//		vector<double> splitR;//splitR å­˜æ”¾äº†ä¸€ä¸ªç½‘æ ¼çš„å››ä¸ªç‚¹çš„ç´¢å¼•
 //		split_number(line,splitR);
 //
 //		SPAposition A(x[splitR[0]],y[splitR[0]],z[splitR[0]]);
@@ -398,7 +454,7 @@ void testEllipsoid(){
 //	//api_solid_block(SPAposition(0,0,5), SPAposition(0,0,5),point_body);
 //	//api_solid_block(SPAposition(0,0,-5), SPAposition(0,0,-5),point_body1);
 //	api_build_wire (NULL, FALSE, 1, pts,NULL, point_body, NULL);
-//	api_build_wire (NULL, FALSE, 1, pts1,NULL, point_body1, NULL);//¹¹½¨µãÊµÌåµÄ·½·¨
+//	api_build_wire (NULL, FALSE, 1, pts1,NULL, point_body1, NULL);//æ„å»ºç‚¹å®ä½“çš„æ–¹æ³•
 //	//api_create_point(A,a,NULL);
 //
 //	//api_curve_line(A, A, point,  NULL ) ;
@@ -452,7 +508,7 @@ void testEllipsoid(){
 //	//api_solid_block(SPAposition(0,0,5), SPAposition(0,0,5),point_body);
 //	//api_solid_block(SPAposition(0,0,-5), SPAposition(0,0,-5),point_body1);
 //	api_build_wire (NULL, FALSE, 1, pts,NULL, point_body, NULL);
-//	api_build_wire (NULL, FALSE, 1, pts1,NULL, point_body1, NULL);//¹¹½¨µãÊµÌåµÄ·½·¨
+//	api_build_wire (NULL, FALSE, 1, pts1,NULL, point_body1, NULL);//æ„å»ºç‚¹å®ä½“çš„æ–¹æ³•
 //	//api_create_point(A,a,NULL);
 //
 //	//api_curve_line(A, A, point,  NULL ) ;
